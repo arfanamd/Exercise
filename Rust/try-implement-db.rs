@@ -18,22 +18,18 @@ impl Employee {
 		return Employee {
 			id: *id,
 			set: false,
-			mail: Default::default(),
+			mail: String::new(),
 		};
-	}
-	
-	fn get(&self) -> &String {
-		return &self.mail;
 	}
 }
 
-impl fmt::Debug for Employee {
+/* impl fmt::Debug for Employee { *{{{1
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		return write!(f, "\"{}\",\"{}\",\"{}\"", self.mail, self.id, self.set);
 	}
-}
+} *}}} */
 
-const MAX_ROWS: usize = 32;
+const MAX_ROWS: usize = 2;
 
 struct Database {
 	rows: Vec<Employee>,
@@ -53,38 +49,45 @@ impl Database {
 	}
 	
 	fn print(&self, id: usize) {
-		println!("\"{}\",\"{}\"", self.rows[id].get(), id);
+		if self.is_set(&id) {
+			println!("\"{}\",\"{}\"", self.rows[id].mail, id);
+		} else {
+			println!("address {} is empty", id);
+		}
 	}
 	
 	fn is_set(&self, id: &usize) -> bool {
 		return self.rows[*id].set;
 	}
 	
-	fn set(&mut self, id: usize, mail: String) -> Result<(), &'static str> {
-		if id < MAX_ROWS {
-			if self.is_set(&id) {
-				return Err("Already set, remove it first!");
-			}
+	fn set(&mut self, mail: String) {
+		for db in self.rows.iter_mut().enumerate() {
+			let (id, data): (usize, &mut Employee) = db;
 			
-			self.rows[id].set = true;
-			self.rows[id].mail = mail;
-			return Ok(());
+			/* TODO: there is a bug inside this logic */
+			if id < MAX_ROWS {
+				println!("set for address {}", id);
+				if data.set == false {
+					data.set = true;
+					data.mail = mail.clone();
+					break;
+				}
+			} else {
+				panic!("database is full");
+			}
 		}
-		
-		return Err("Id is out of scope");
 	}
-
-	fn unset(&mut self, id: usize) -> Result<(), &'static str> {
+	
+	fn unset(&mut self, id: usize) {
 		if id < MAX_ROWS {
 			if self.is_set(&id) {
-				return Err("It is not yet set");
+				self.rows[id] = Employee::new(&id);
+			} else {
+				panic!("address {} is not set", id);
 			}
-			
-			self.rows[id] = Employee::new(&id);
-			return Ok(());
+		} else {
+			panic!("address {} is out of scope", id);
 		}
-		
-		return Err("It is not yet set");
 	}
 }
 
@@ -119,9 +122,15 @@ impl Connection {
 
 fn main() {
 	let mut my_db = Database::init();
-	my_db.set(0, "cat@domain.my".to_string());
+	my_db.set("cat@domain.my".to_string());
+	my_db.set("dog@domain.my".to_string());
+	my_db.set("eel@domain.my".to_string());
+	my_db.set("fish@domain.my".to_string());
+
 	my_db.print(0);
-	println!("{:?}", my_db.rows[0]);
+	my_db.print(1);
+	my_db.print(2);
+	my_db.print(3);
 }
 
 // vim:ft=rust:noet:ai:cin:nosi
