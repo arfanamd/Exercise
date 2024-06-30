@@ -1,10 +1,13 @@
 #![allow(dead_code)]
 #![allow(unused)] 
 
-fn render(col: &u8, row: &u8, num: &u32) {
-	for y in 0..*row {
-		for x in 0..*col {
-			if ((num >> (row - y - 1) * col + x) & 1) != 0 {
+fn render(num: &u32) {
+	const COL: u8 = 6;
+	const ROW: u8 = 5;
+	
+	for y in 0..ROW {
+		for x in 0..COL {
+			if ((num >> (ROW - y - 1) * COL + x) & 1) != 0 {
 				print!("*");
 			} else {
 				print!(" ");
@@ -13,14 +16,32 @@ fn render(col: &u8, row: &u8, num: &u32) {
 		println!("");
 	}
 }
+fn conv(n: &u32) {
+	const BYTES: u8 = 30;
+	const BITS:  u8 = 6;
+	
+	let mask: u32 = 1 << (BYTES - 1);
+	let mut n: u32 = *n;
+	
+	for i in 0..BYTES {
+		match n & mask {
+			0 => print!(" "),
+			_ => print!("*"),
+		}
+		n <<= 1;
+		
+		if (i + 1) % BITS == 0 {
+			println!("");
+		}
+	}
+}
 
 fn main() {
-	let col: u8        = 6;
-	let row: u8        = 5;
 	let map: [u32; 04] = [516898014, 1009828671, 516711231, 516717790];
 
 	for i in 0..4 {
-		render(&col, &row, &map[i]);
+		render(&map[i]);
+		conv(&map[i]);
 		println!("");
 	}
 	/*
